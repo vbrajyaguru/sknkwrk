@@ -52,11 +52,11 @@ class NodeServer(object):
 	  
 def main():
 	server = NodeServer()
-        Pyro4.config.HOST = "192.168.0.100"
+        Pyro4.config.HOST = "192.168.0.104"
 	with Pyro4.Daemon() as daemon:
 		server_uri = daemon.register(server)
 		with Pyro4.locateNS() as ns:
-			ns.register("server.hostname1", server_uri)
+			ns.register("server."+server.name, server_uri)
 		print("Server {0} is running.".format(server.name))
 		daemon.requestLoop()
 
