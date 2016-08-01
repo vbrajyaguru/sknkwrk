@@ -5,10 +5,17 @@
 from __future__ import print_function
 import Pyro4
 import socket
+import ConfigParser
+import io
+
 
 class NodeServer(object):
 	def __init__(self):
 		self.name = socket.gethostname()
+		self.conf = "server.conf"
+		self.ip_addr = "127.0.0.1"
+		self.hmac_key = ""
+		self.hmac_key_ns = ""
 		self.methods = ["get_fan_speed", "get_temps", "get_machine_type"]
 		self.fanspeed = ["8400RPM", "8400RPM", "8160RPM", "7680RPM","7440RPM","7560RPM"]
 		self.temps = ["24degrees C", "32degrees C"]
@@ -52,10 +59,52 @@ class NodeServer(object):
 	  
 def main():
 	server = NodeServer()
-        Pyro4.config.HOST = "192.168.0.104"
+
+	try:
+		# Load the configuration file
+		with open(server.conf, "r") as file:
+			server_config = file.read()
+		config = ConfigParser.RawConfigParser(allow_no_value=True)
+		config.readfp(io.BytesIO(server_config))
+		print("Server {0} loaded configuration file {1}".format(server.name, server.conf))
+
+
+		# Read options from configuration file
+		# Read ip address
+		try:
+			if(config.get("connection", "ip_addr") != ""):
+				server.ip_addr = config.get("connection", "ip_addr")
+				print("Server {0} using ip_addr \"{1}\"".format(server.name, server.ip_addr))
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+			print("Server {0} config option ip_addr not found, using default value \"{1}\"".format(server.name, server.ip_addr))  
+		
+		
+		# Read server hmac key
+		try:
+			if(config.get("connection", "hmac_key") != ""):
+				server.hmac_key = config.get("connection", "hmac_key")
+				print("Server {0} using hmac_key \"{1}\"".format(server.name, server.hmac_key))
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+			print("Server {0} config option hmac_key not found, using default value \"{1}\"".format(server.name, server.hmac_key))
+
+
+		# Read nameserver hmac key
+		try:
+			if(config.get("connection", "hmac_key_ns") != ""):
+				server.hmac_key_ns = config.get("connection", "hmac_key_ns")
+				print("Server {0} using hmac_key_ns \"{1}\"".format(server.name, server.hmac_key_ns))
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+			print("Server {0} config option hmac_key_ns not found, using default value \"{1}\"".format(server.name, server.hmac_key_ns))
+
+	except IOError:
+		print("Server {0} configuration file \"{1}\" not found, will use default options".format(server.name, server.conf))
+
+
+	Pyro4.config.HOST = server.ip_addr
 	with Pyro4.Daemon() as daemon:
+		daemon._pyroHmacKey = server.hmac_key
 		server_uri = daemon.register(server)
-		with Pyro4.locateNS() as ns:
+		with Pyro4.locateNS(hmac_key=server.hmac_key_ns) as ns:
 			ns.register("server."+server.name, server_uri)
 		print("Server {0} is running.".format(server.name))
 		daemon.requestLoop()
