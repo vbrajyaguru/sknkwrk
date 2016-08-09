@@ -5,11 +5,12 @@ from __future__ import print_function
 import Pyro4
 import ConfigParser
 import io
+import socket
 
 
 class Client(object):
 	def __init__(self):
-		self.name = "Rpi"
+		self.name = socket.gethostname()
 		self.conf = "client.conf"
 		self.hmac_key = ""
 		self.hmac_key_ns = ""
@@ -24,10 +25,18 @@ def main():
                         client_config = file.read()
                 config = ConfigParser.RawConfigParser(allow_no_value=True)
                 config.readfp(io.BytesIO(client_config))
-                print("client {0} loaded configuration file {1}".format(client.name, client.conf))
+                print("client loaded configuration file {0}".format(client.conf))
 
 
                 # Read options from configuration file
+		# Read application name
+		try:
+			if(config.get("application", "name") != ""):
+				client.name = config.get("application", "name")
+				print("client using name \"{0}\"".format(client.name))
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+			print("client config option name not found, using default name \"{0}\"".format(client.name))
+
                 # Read server hmac key
                 try:
                         if(config.get("connection", "hmac_key") != ""):

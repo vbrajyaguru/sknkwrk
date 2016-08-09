@@ -66,10 +66,19 @@ def main():
 			server_config = file.read()
 		config = ConfigParser.RawConfigParser(allow_no_value=True)
 		config.readfp(io.BytesIO(server_config))
-		print("Server {0} loaded configuration file {1}".format(server.name, server.conf))
+		print("Server loaded configuration file {0}".format(server.conf))
 
 
 		# Read options from configuration file
+		# Read application name
+		try:
+			if(config.get("application", "name") != ""):
+				server.name = config.get("application", "name")
+	                    	print("Server using name \"{0}\"".format(server.name))
+                except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                        print("Server config option name not found, using default name \"{0}\"".format(server.name))
+
+
 		# Read ip address
 		try:
 			if(config.get("connection", "ip_addr") != ""):
