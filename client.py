@@ -67,10 +67,10 @@ def main():
 			server._pyroHmacKey = client.hmac_key
 			server.join(client.name)
 		
-			print("client {0} requested server supported methods: {1}".format(client.name, server.list_methods()))
-			print("client {0} requested server machinetype: {1}".format(client.name, server.get_machine_type()))
-			print("client {0} requested server fan speed: {1}".format(client.name, server.get_fan_speed()))
-			print("client {0} requested server temps: {1}".format(client.name, server.get_temps()))
+			print("client {0} requested server supported methods: {1}".format(client.name, server.list_methods(client.name)))
+			print("client {0} requested server machinetype: {1}".format(client.name, server.get_machine_type(client.name)))
+			print("client {0} requested server fan speed: {1}".format(client.name, server.get_fan_speed(client.name)))
+			print("client {0} requested server temps: {1}".format(client.name, server.get_temps(client.name)))
 		
 			print("client {0} leaving {1}".format(client.name, rem_server))
 			server.leave(client.name)
