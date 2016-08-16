@@ -17,8 +17,6 @@ class NodeServer(object):
 		self.hmac_key = ""
 		self.hmac_key_ns = ""
 		self.methods = ["get_fan_speed", "get_temps", "get_machine_type"]
-		self.fanspeed = []
-		self.temps = []
 		self.machinetype = ""
 		self.attached_clients = []
 
@@ -28,7 +26,7 @@ class NodeServer(object):
 	@Pyro4.expose	
 	def list_methods(self, client):
 		print("server {0} received request to list supported methods from client {1}.".format(self.name, client))
-		print("server {0} responding with: {1}".format(self.name, self.methods))
+		print("server {0} responding to {1} with: {2}".format(self.name, client, self.methods))
 		return self.methods
 		
 	@Pyro4.expose
@@ -46,23 +44,23 @@ class NodeServer(object):
 	@Pyro4.expose
 	def get_fan_speed(self, client):
 		print("server {0} received request for fan speed from client {1}.".format(self.name, client))
-		self.fanspeed = []
+		fanspeed = []
 		fans = os.popen("ipmitool -c sdr type Fan | awk -F , /'RPM'/'{print $2}'")
 		for f in fans.readlines():
-        		self.fanspeed.append(int(f.strip()))
-		print("server {0} responding with: {1}".format(self.name, self.fanspeed))
-		return self.fanspeed
+			fanspeed.append(int(f.strip()))
+		print("server {0} responding to {1} with: {2}".format(self.name, client,  fanspeed))
+		return fanspeed
 
 	@Pyro4.expose
 	def get_temps(self, client):
 		print("server {0} received request for temp from client {1}.".format(self.name, client))
-		self.temps = []
+		temps = []
 		inlet = os.popen("ipmitool -c sdr type Temperature | awk -F , /'Inlet'/'{print $2}'").read()
 		exhaust = os.popen("ipmitool -c sdr type Temperature | awk -F , /'Exhaust'/'{print $2}'").read()
-		self.temps.append(int(inlet.strip()))
-		self.temps.append(int(exhaust.strip()))
-		print("server {0} responding with: {1}".format(self.name, self.temps))
-		return self.temps
+		temps.append(int(inlet.strip()))
+		temps.append(int(exhaust.strip()))
+		print("server {0} responding to {1} with: {2}".format(self.name, client, temps))
+		return temps
 	
 	@Pyro4.expose
 	def get_machine_type(self, client):
