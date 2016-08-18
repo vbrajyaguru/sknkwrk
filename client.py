@@ -6,6 +6,7 @@ import Pyro4
 import ConfigParser
 import io
 import socket
+import os
 
 
 class Client(object):
@@ -21,7 +22,10 @@ def main():
 
 	try:
 		# Load the configuration file
-                with open(client.conf, "r") as file:
+		self_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+		conf_location = os.path.join(self_location, client.conf)
+
+		with open(conf_location, "r") as file:
                         client_config = file.read()
                 config = ConfigParser.RawConfigParser(allow_no_value=True)
                 config.readfp(io.BytesIO(client_config))
