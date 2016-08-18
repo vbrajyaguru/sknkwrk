@@ -67,9 +67,15 @@ class NodeServer(object):
 		print("server {0} received request for machinetype from client {1}.".format(self.name, client))
 		if self.machinetype == "":
 			print("server {0} querying machinetype information.".format(self.name))
-        		manufacturer = os.popen("dmidecode --type 1 | awk -F : /'Manufacturer'/'{print $2}'").read()
-        		product_name = os. popen("dmidecode --type 1 | awk -F : /'Product Name'/'{print $2}'").read()
-        		self.machinetype = manufacturer.strip() + " " + product_name.strip()
+			manufacturer = os.popen("dmidecode --type 1 | awk -F : /'Manufacturer'/'{print $2}'").read().strip()
+			product_name = os. popen("dmidecode --type 1 | awk -F : /'Product Name'/'{print $2}'").read().strip()
+			bbpn = os.popen("dmidecode --type 2 | awk -F : /'Product Name'/'{print $2}'").read().strip()
+			if manufacturer != "" and product_name != "":
+				self.machinetype = manufacturer + " " + product_name
+			elif bbpn != "":
+				self.machinetype = bbpn
+			else:
+				self.machinetype = "notdefined"
 		print("server {0} responding with: {1}".format(self.name, self.machinetype))
 		return self.machinetype
 
