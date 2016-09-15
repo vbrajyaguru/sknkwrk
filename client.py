@@ -102,6 +102,8 @@ def main():
 			logging.debug("client %s requested server machinetype: %s", client.name, server.get_machine_type(client.name))
 			logging.debug("client %s requested server fan speed: %s", client.name, server.get_fan_speed(client.name))
 			logging.debug("client %s requested server temps: %s", client.name, server.get_temps(client.name))
+			logging.debug("client %s requesting server to set fan speed offset", client.name)
+			server.set_fan_speed_offset(client.name)
 
 			logging.info("client %s leaving %s", client.name, rem_server)
 			server.leave(client.name)

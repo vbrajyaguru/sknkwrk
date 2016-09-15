@@ -22,7 +22,7 @@ class NodeServer(object):
 		self.hmac_key_ns = ""
 		self.logfile = "server.log"
 		self.loglevel = "DEBUG"
-		self.methods = ["get_fan_speed", "get_temps", "get_machine_type"]
+		self.methods = ["get_fan_speed", "get_temps", "get_machine_type", "set_fan_speed_offset"]
 		self.machinetype = ""
 		self.attached_clients = []
 
@@ -56,6 +56,11 @@ class NodeServer(object):
                         fanspeed.append(int(f.strip()))
 		logging.debug("server %s responding to %s with: %s", self.name, client,  fanspeed)
 		return fanspeed
+
+	@Pyro4.expose
+	def set_fan_speed_offset(self, client):
+		logging.info("server %s received request to set fan speed offset from client %s.", self.name, client)
+		os.popen("racadm set system.thermalsettings.FanSpeedOffset 1")
 
 	@Pyro4.expose
 	def get_temps(self, client):
