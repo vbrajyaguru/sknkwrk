@@ -19,7 +19,12 @@ class Client(object):
 		self.loglevel = "INFO"
 		self.hmac_key = ""
 		self.hmac_key_ns = ""
+		self.notify_sms_msg = ""
+		self.notify_sms_no = ""
 
+	def notify_sms(self):
+		logging.info("client %s sending sms message \"%s\" to %s", self.name, self.notify_sms_msg, self.notify_sms_no)
+		os.popen("echo self.notify_sms_msg | sudo gammu sendsms TEXT self.notify_sms_no")
 		
 def main():
 	client = Client()
@@ -84,6 +89,15 @@ def main():
 		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
 			logging.debug("client %s config option hmac_key_ns not found, using default value \"%s\"", client.name, client.hmac_key_ns)
 
+		# Read message and contact number for sms notification
+		try:
+			if(config.get("notification", "sms_msg") != "" and config.get("notification", "sms_number") != ""):
+				client.notify_sms_msg = config.get("notification", "sms_msg")
+				client.notify_sms_no =  config.get("notification", "sms_number")
+				logging.debug("client %s to notify %s with message \"%s\" when environmental thresholds are exceeded", client.name, client.notify_sms_no, client.notify_sms_msg)
+		except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+			logging.debug("client %s config option sms_msg or sms_number not found, cannot send notifications", client.name)
+
 	except IOError:
 		logf_location = os.path.join(self_location, client.logfile)
 		numeric_loglevel = logging_levels[client.loglevel]
@@ -104,6 +118,9 @@ def main():
 			logging.debug("client %s requested server temps: %s", client.name, server.get_temps(client.name))
 			logging.debug("client %s requesting server to set fan speed offset", client.name)
 			server.set_fan_speed_offset(client.name)
+
+			if(client.notify_sms_no != "" and client.notify_sms_msg != ""):
+				client.notify_sms()
 
 			logging.info("client %s leaving %s", client.name, rem_server)
 			server.leave(client.name)
